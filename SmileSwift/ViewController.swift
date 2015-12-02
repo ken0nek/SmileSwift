@@ -50,7 +50,7 @@ class ViewController: UIViewController {
             for feature in features as! [CIFaceFeature] {
                 resultString.appendContentsOf("bounds: \(NSStringFromCGRect(feature.bounds))\n")
                 resultString.appendContentsOf("hasSmile: \(feature.hasSmile ? "YES" : "NO")\n")
-                resultString.appendContentsOf("faceAngle: \(feature.hasFaceAngle ? "\(feature.faceAngle)" : "NONE")\n")
+                resultString.appendContentsOf("faceAngle: \(feature.hasFaceAngle ? String(feature.faceAngle) : "NONE")\n")
                 resultString.appendContentsOf("leftEyeClosed: \(feature.leftEyeClosed ? "YES" : "NO")\n")
                 resultString.appendContentsOf("rightEyeClosed: \(feature.rightEyeClosed ? "YES" : "NO")\n")
                 
@@ -63,4 +63,7 @@ class ViewController: UIViewController {
         }
     }
 }
+
+
+
 
