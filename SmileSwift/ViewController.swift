@@ -9,9 +9,9 @@
 import UIKit
 
 class ViewController: UIViewController {
-
-    @IBOutlet weak var outputTextView: UITextView!
-    @IBOutlet weak var sampleImageView: UIImageView!
+    
+    @IBOutlet private weak var outputTextView: UITextView!
+    @IBOutlet private weak var sampleImageView: UIImageView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -19,42 +19,48 @@ class ViewController: UIViewController {
         
         detectFaces()
     }
-
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-
-    func detectFaces() {
+    
+    private func detectFaces() {
         let queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)
-        dispatch_async(queue, { () -> Void in
+        dispatch_async(queue) {
             
-            // storyboardに置いたimageViewからCIImageを生成する
-            let image  = CIImage(CGImage: self.sampleImageView.image?.CGImage)
-            
-            // 顔認識なのでTypeをCIDetectorTypeFaceに指定する
-            let detector = CIDetector(ofType: CIDetectorTypeFace, context: nil, options: [CIDetectorAccuracy: CIDetectorAccuracyHigh])
-            
-            // 取得するパラメーターを指定する
-            let options = [CIDetectorSmile : true, CIDetectorEyeBlink : true]
-            
-            // 画像から特徴を抽出する
-            let features = detector.featuresInImage(image, options: options)
-            
-            var resultString: NSMutableString = "DETECTED FACES:\n\n"
-            
-            for feature in features as [CIFaceFeature] {
-                resultString.appendFormat("bounds:%@\n", NSStringFromCGRect(feature.bounds))
-                resultString.appendFormat("hasSmile: %@\n\n", feature.hasSmile ? "YES" : "NO")
-                //                resultString.appendFormat("faceAngle: %@", feature.hasFaceAngle ? feature.faceAngle : "NONE");
-                //                resultString.appendFormat("leftEyeClosed: %@", feature.leftEyeClosed ? "YES" : "NO");
-                //                resultString.appendFormat("rightEyeClosed: %@", feature.rightEyeClosed ? "YES" : "NO");
+            // create CGImage from image on storyboard.
+            guard let image = self.sampleImageView.image, cgImage = image.CGImage else {
+                return
             }
             
-            dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                self.outputTextView.text = resultString
-            })
-        })
+            let ciImage = CIImage(CGImage: cgImage)
+            
+            // set CIDetectorTypeFace.
+            let detector = CIDetector(ofType: CIDetectorTypeFace, context: nil, options: [CIDetectorAccuracy: CIDetectorAccuracyHigh])
+            
+            // set options
+            let options = [CIDetectorSmile : true, CIDetectorEyeBlink : true]
+            
+            // get features from image
+            let features = detector.featuresInImage(ciImage, options: options)
+            
+            let resultString: NSMutableString = "DETECTED FACES:\n\n"
+            
+            for feature in features as! [CIFaceFeature] {
+                resultString.appendString("bounds: \(NSStringFromCGRect(feature.bounds))\n")
+                resultString.appendString("hasSmile: \(feature.hasSmile ? "YES" : "NO")\n")
+                resultString.appendString("faceAngle: \(feature.hasFaceAngle ? "\(feature.faceAngle)" : "NONE")\n")
+                resultString.appendString("leftEyeClosed: \(feature.leftEyeClosed ? "YES" : "NO")\n")
+                resultString.appendString("rightEyeClosed: \(feature.rightEyeClosed ? "YES" : "NO")\n")
+                
+                resultString.appendString("\n")
+            }
+            
+            dispatch_async(dispatch_get_main_queue()) { () -> Void in
+                self.outputTextView.text = "\(resultString)"
+            }
+        }
     }
 }
 
