@@ -45,16 +45,16 @@ class ViewController: UIViewController {
             // get features from image
             let features = detector.featuresInImage(ciImage, options: options)
             
-            let resultString: NSMutableString = "DETECTED FACES:\n\n"
+            var resultString = "DETECTED FACES:\n\n"
             
             for feature in features as! [CIFaceFeature] {
-                resultString.appendString("bounds: \(NSStringFromCGRect(feature.bounds))\n")
-                resultString.appendString("hasSmile: \(feature.hasSmile ? "YES" : "NO")\n")
-                resultString.appendString("faceAngle: \(feature.hasFaceAngle ? "\(feature.faceAngle)" : "NONE")\n")
-                resultString.appendString("leftEyeClosed: \(feature.leftEyeClosed ? "YES" : "NO")\n")
-                resultString.appendString("rightEyeClosed: \(feature.rightEyeClosed ? "YES" : "NO")\n")
+                resultString.appendContentsOf("bounds: \(NSStringFromCGRect(feature.bounds))\n")
+                resultString.appendContentsOf("hasSmile: \(feature.hasSmile ? "YES" : "NO")\n")
+                resultString.appendContentsOf("faceAngle: \(feature.hasFaceAngle ? "\(feature.faceAngle)" : "NONE")\n")
+                resultString.appendContentsOf("leftEyeClosed: \(feature.leftEyeClosed ? "YES" : "NO")\n")
+                resultString.appendContentsOf("rightEyeClosed: \(feature.rightEyeClosed ? "YES" : "NO")\n")
                 
-                resultString.appendString("\n")
+                resultString.appendContentsOf("\n")
             }
             
             dispatch_async(dispatch_get_main_queue()) { () -> Void in
