@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+final class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
     @IBOutlet private weak var outputTextView: UITextView!
     @IBOutlet private weak var sampleImageView: UIImageView!
@@ -25,16 +25,37 @@ class ViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
     
+    @IBAction func selectPhoto() {
+        guard UIImagePickerController.isSourceTypeAvailable(.photoLibrary) else {
+            return
+        }
+        
+        let picker = UIImagePickerController()
+        picker.sourceType = .photoLibrary
+        picker.delegate = self
+        present(picker, animated: true, completion: nil)
+    }
+
+    // MARK: - UIImagePickerControllerDelegate
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
+        if let image = info[UIImagePickerControllerOriginalImage] as? UIImage {
+            sampleImageView.image = image
+            detectFaces()
+        }
+        
+        picker.dismiss(animated: true, completion: nil)
+    }
+
+    // MARK: -
     private func detectFaces() {
-        let queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)
-        dispatch_async(queue) {
+        DispatchQueue.global(qos: .background).async {
             
             // create CGImage from image on storyboard.
-            guard let image = self.sampleImageView.image, cgImage = image.CGImage else {
+            guard let image = self.sampleImageView.image, let cgImage = image.cgImage else {
                 return
             }
             
-            let ciImage = CIImage(CGImage: cgImage)
+            let ciImage = CIImage(cgImage: cgImage)
             
             // set CIDetectorTypeFace.
             let detector = CIDetector(ofType: CIDetectorTypeFace, context: nil, options: [CIDetectorAccuracy: CIDetectorAccuracyHigh])
@@ -43,27 +64,23 @@ class ViewController: UIViewController {
             let options = [CIDetectorSmile : true, CIDetectorEyeBlink : true]
             
             // get features from image
-            let features = detector.featuresInImage(ciImage, options: options)
+            let features = detector?.features(in: ciImage, options: options)
             
             var resultString = "DETECTED FACES:\n\n"
-            
+
             for feature in features as! [CIFaceFeature] {
-                resultString.appendContentsOf("bounds: \(NSStringFromCGRect(feature.bounds))\n")
-                resultString.appendContentsOf("hasSmile: \(feature.hasSmile ? "YES" : "NO")\n")
-                resultString.appendContentsOf("faceAngle: \(feature.hasFaceAngle ? String(feature.faceAngle) : "NONE")\n")
-                resultString.appendContentsOf("leftEyeClosed: \(feature.leftEyeClosed ? "YES" : "NO")\n")
-                resultString.appendContentsOf("rightEyeClosed: \(feature.rightEyeClosed ? "YES" : "NO")\n")
+                resultString.append("bounds: \(NSStringFromCGRect(feature.bounds))\n")
+                resultString.append("hasSmile: \(feature.hasSmile ? "YES" : "NO")\n")
+                resultString.append("faceAngle: \(feature.hasFaceAngle ? String(feature.faceAngle) : "NONE")\n")
+                resultString.append("leftEyeClosed: \(feature.leftEyeClosed ? "YES" : "NO")\n")
+                resultString.append("rightEyeClosed: \(feature.rightEyeClosed ? "YES" : "NO")\n")
                 
-                resultString.appendContentsOf("\n")
+                resultString.append("\n")
             }
             
-            dispatch_async(dispatch_get_main_queue()) { () -> Void in
+            DispatchQueue.main.async { () -> Void in
                 self.outputTextView.text = "\(resultString)"
             }
         }
     }
 }
-
-
-
-
